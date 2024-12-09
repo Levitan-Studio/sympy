@@ -155,6 +155,7 @@ class LatexPrinter(Printer):
         "mat_str": None,
         "mode": "plain",
         "mul_symbol": None,
+        "div_symbol": None,
         "order": None,
         "symbol_names": {},
         "root_notation": True,
@@ -208,6 +209,17 @@ class LatexPrinter(Printer):
             else:
                 self._settings['mul_symbol_latex_numbers'] = \
                     self._settings['mul_symbol']
+
+        div_symbol_table = {
+            None: r" / ",
+            "div": r" \div ",
+        }
+        try:
+            self._settings['div_symbol_latex'] = \
+                div_symbol_table[self._settings['div_symbol']]
+        except KeyError:
+            self._settings['div_symbol_latex'] = \
+                self._settings['div_symbol']
 
         self._delim_dict = {'(': ')', '[': ']'}
 
@@ -520,6 +532,7 @@ class LatexPrinter(Printer):
     def _print_Mul(self, expr: Expr):
         from sympy.simplify import fraction
         separator: str = self._settings['mul_symbol_latex']
+        div_separator: str = self._settings['div_symbol_latex']
         numbersep: str = self._settings['mul_symbol_latex_numbers']
 
         def convert(expr) -> str:
@@ -587,8 +600,14 @@ class LatexPrinter(Printer):
             # use the original expression here, since fraction() may have
             # altered it when producing numer and denom
             tex += convert(expr)
-
         else:
+            # Special modification to improve log print.
+            # Check if expr=log(x)/log(y) and transform to log_y(x)
+            if (numer.is_Function and numer.func.__name__ == 'log' and len(numer.args) == 1) and\
+                  (denom.is_Function and denom.func.__name__ == 'log' and len(denom.args) == 1):
+                tex = r"\log_{%s}{%s}" % \
+                    (self._print(denom.args[0]), self._add_parens(self._print(numer.args[0])))
+                return tex
             snumer = convert(numer)
             sdenom = convert(denom)
             ldenom = len(sdenom.split())
@@ -597,9 +616,9 @@ class LatexPrinter(Printer):
                     "^" not in sdenom:
                 # handle short fractions
                 if self._needs_mul_brackets(numer, last=False):
-                    tex += r"\left(%s\right) / %s" % (snumer, sdenom)
+                    tex += r"\left(%s\right) %s %s" % (snumer,'/', sdenom)
                 else:
-                    tex += r"%s / %s" % (snumer, sdenom)
+                    tex += r"%s %s %s" % (snumer, '/', sdenom)
             elif ratio is not None and \
                     len(snumer.split()) > ratio*ldenom:
                 # handle long fractions
@@ -1082,12 +1101,11 @@ class LatexPrinter(Printer):
             if len(base) == 1:
                 tex = r"\log_%s{\left(%s \right)}" % (base, argument)
             else:
-                tex = r"\log_{%s}{\left(%s \right)}" % (base, argument)
+                tex = r"\log11_{%s}{\left(%s \right)}" % (base, argument)
         elif not self._settings["ln_notation"]:
             tex = r"\log{\left(%s \right)}" % self._print(expr.args[0])
         else:
             tex = r"\ln{\left(%s \right)}" % self._print(expr.args[0])
-
         if exp is not None:
             return r"%s^{%s}" % (tex, exp)
         else:
