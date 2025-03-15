@@ -295,7 +295,6 @@ class Application(Basic, metaclass=FunctionClass):
     def __new__(cls, *args, **options):
         from sympy.sets.fancysets import Naturals0
         from sympy.sets.sets import FiniteSet
-
         args = list(map(sympify, args))
         evaluate = options.pop('evaluate', global_parameters.evaluate)
         # WildFunction (and anything else like it) may have nargs defined
