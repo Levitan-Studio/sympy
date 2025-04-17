@@ -605,7 +605,7 @@ class LatexPrinter(Printer):
             # Check if expr=log(x)/log(y) and transform to log_y(x)
             if (numer.is_Function and numer.func.__name__ == 'log' and len(numer.args) == 1) and\
                   (denom.is_Function and denom.func.__name__ == 'log' and len(denom.args) == 1):
-                tex = r"\log_{%s}{%s}" % \
+                tex += r"\log_{%s}{%s}" % \
                     (self._print(denom.args[0]), self._add_parens(self._print(numer.args[0])))
                 return tex
             snumer = convert(numer)
