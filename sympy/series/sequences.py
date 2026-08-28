@@ -1,4 +1,5 @@
 from __future__ import annotations
+from sympy.core import diff
 from sympy.core.basic import Basic
 from sympy.core.cache import cacheit
 from sympy.core.containers import Tuple
@@ -755,6 +756,79 @@ class SeqFormula(SeqExpr):
 
     def expand(self, *args, **kwargs):
         return SeqFormula(expand(self.formula, *args, **kwargs), self.args[1])
+
+    def get_extremums(eq, param):
+        from sympy.solvers import solve
+        seq_diff = diff(eq, param)
+        extremums = solve(seq_diff)
+        local_mins = []
+        local_maxs = []
+        for extremum in extremums:
+            inc_0 = seq_diff.subs(param, extremum - 0.0001)
+            inc_1 = seq_diff.subs(param, extremum + 0.0001)
+            if inc_0 > 0 and inc_1 < 0:
+                local_maxs.append(extremum)
+            elif inc_0 < 0 and inc_1 > 0:
+                local_mins.append(extremum)
+            # else:
+            #     print("not extremum")
+
+        return (local_mins, local_maxs)
+
+    def max(self):
+        (param, limit_min, limit_max) = self.args[1]
+        expr = self.formula
+        (local_mins, local_maxs) = SeqFormula.get_extremums(expr, param)
+
+        candidate_points = []
+        # candidate_points.append(expr.subs(param, limit_min))
+        if limit_max != S.Infinity:
+            candidate_points.append(expr.subs(param, limit_max))
+
+        # Add integer neighbors around critical points
+        for c in local_maxs:
+            for k in [-1, 0, 1]:
+                n_val = int(c + k)
+                if n_val >= limit_min and n_val <= limit_max:
+                    candidate_points.append(expr.subs(param, n_val))
+
+        if limit_max == S.Infinity:
+            from sympy.series.limits import limit
+            lim_inf = limit(expr, param, S.Infinity)
+            if lim_inf.is_finite:
+                candidate_points.append(lim_inf)
+
+        if len(candidate_points) == 0:
+            return S.Infinity
+        return max(candidate_points)
+
+
+    def min(self):
+        (param, limit_min, limit_max) = self.args[1]
+        expr = self.formula
+        (local_mins, local_maxs) = SeqFormula.get_extremums(expr, param)
+
+        candidate_points = []
+        candidate_points.append(expr.subs(param, limit_min))
+        if limit_max != S.Infinity:
+            candidate_points.append(expr.subs(param, limit_max))
+
+        # Add integer neighbors around critical points
+        for c in local_mins:
+            for k in [-1, 0, 1]:
+                n_val = int(c + k)
+                if n_val >= limit_min and n_val <= limit_max:
+                    candidate_points.append(expr.subs(param, n_val))
+
+        if limit_max == S.Infinity:
+            from sympy.series.limits import limit
+            lim_inf = limit(expr, param, S.Infinity)
+            if lim_inf.is_finite:
+                candidate_points.append(lim_inf)
+
+        if len(candidate_points) == 0:
+            return -S.Infinity
+        return min(candidate_points)
 
 class RecursiveSeq(SeqBase):
     """
