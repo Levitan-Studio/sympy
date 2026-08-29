@@ -1862,15 +1862,17 @@ class LatexPrinter(Printer):
         parens = lambda x: self._print(x) if isinstance(x, Mul) and not isinstance(x, MatMul) else \
             self.parenthesize(x, precedence_traditional(expr), False)
 
+        separator: str = self._settings['mul_symbol_latex']
+
         args = list(expr.args)
         if expr.could_extract_minus_sign():
             if args[0] == -1:
                 args = args[1:]
             else:
                 args[0] = -args[0]
-            return '- ' + ' '.join(map(parens, args))
+            return '- ' + separator.join(map(parens, args))
         else:
-            return ' '.join(map(parens, args))
+            return separator.join(map(parens, args))
 
     def _print_DotProduct(self, expr):
         level = precedence_traditional(expr)

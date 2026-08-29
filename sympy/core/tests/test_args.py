@@ -3207,6 +3207,11 @@ def test_sympy__matrices__immutable__ImmutableSparseMatrix():
     assert _test_args(Basic(*list(m)))
 
 
+def test_sympy__matrices__matrices_uneval__UnevaluatedMatrix():
+    from sympy.matrices.matrices_uneval import UnevaluatedMatrix
+    assert _test_args(UnevaluatedMatrix([[1, 2], [3, 4]]))
+
+
 def test_sympy__matrices__expressions__slice__MatrixSlice():
     from sympy.matrices.expressions.slice import MatrixSlice
     from sympy.matrices.expressions import MatrixSymbol

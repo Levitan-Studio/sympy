@@ -34,6 +34,8 @@ from .expressions import (
     DotProduct, kronecker_product, KroneckerProduct,
     PermutationMatrix, MatrixPermute, MatrixSet, Permanent, per)
 
+from .matrices_uneval import UnevaluatedMatrix
+
 from .utilities import dotprodsimp
 
 __all__ = [
@@ -68,6 +70,8 @@ __all__ = [
     'DiagonalOf', 'trace', 'DotProduct', 'kronecker_product',
     'KroneckerProduct', 'PermutationMatrix', 'MatrixPermute', 'MatrixSet',
     'Permanent', 'per',
+
+    'UnevaluatedMatrix',
 
     'dotprodsimp',
 ]
